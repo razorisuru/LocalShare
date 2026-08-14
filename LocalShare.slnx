@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LocalShare.App/LocalShare.App.csproj" />
+    <Project Path="src/LocalShare.Common/LocalShare.Common.csproj" />
+    <Project Path="src/LocalShare.Core/LocalShare.Core.csproj" />
+    <Project Path="src/LocalShare.Data/LocalShare.Data.csproj" />
+    <Project Path="src/LocalShare.Networking/LocalShare.Networking.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LocalShare.Core.Tests/LocalShare.Core.Tests.csproj" />
+    <Project Path="tests/LocalShare.Data.Tests/LocalShare.Data.Tests.csproj" />
+    <Project Path="tests/LocalShare.Networking.Tests/LocalShare.Networking.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,144 @@
+<UserControl x:Class="LocalShare.App.Views.PublicSpaceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="28,24,28,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════════════════════ -->
+        <!-- TOP TITLE BAR                      -->
+        <!-- ═══════════════════════════════════ -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+            <Border Width="34" Height="34" CornerRadius="10" VerticalAlignment="Center" Margin="0,0,12,0" Background="{StaticResource PrimaryGradient}">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="12" Color="#7C5CFC" Direction="0" ShadowDepth="0" Opacity="0.3"/>
+                </Border.Effect>
+                <TextBlock Text="📁" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <TextBlock Text="Public Space Browser" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Foreground="{StaticResource TitleGradient}"/>
+        </StackPanel>
+        
+        <!-- ═══════════════════════════════════ -->
+        <!-- ACTION & PEER SELECTION BAR        -->
+        <!-- ═══════════════════════════════════ -->
+        <Border Grid.Row="1" CornerRadius="14" Padding="16,12" Margin="0,0,0,14" BorderThickness="1" Background="{StaticResource StudioPanelBrush}" BorderBrush="{StaticResource StudioBorderBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Select LAN Peer:" Foreground="{StaticResource TextSecondary}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                
+                <!-- Peer ComboBox -->
+                <ComboBox Grid.Column="1" ItemsSource="{Binding Peers}" SelectedItem="{Binding SelectedPeer}" Width="280" Background="{StaticResource StudioWorkspaceBrush}" Foreground="White" BorderBrush="{StaticResource StudioBorderBrush}" BorderThickness="1" FontSize="14" VerticalContentAlignment="Center" Cursor="Hand" Padding="8,4">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="6,4" Background="Transparent" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="💻 " FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding IpAddress, StringFormat=' ({0})'}" Foreground="{StaticResource TextSecondary}" FontSize="12" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <Button Content="🔄  Refresh Peers" Command="{Binding RefreshPeersCommand}" Style="{StaticResource GhostButton}" Margin="0,0,10,0"/>
+                    <Button Content="📥  Open Downloads" Command="{Binding OpenReceivedFolderCommand}" Style="{StaticResource ModernPrimaryButton}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════ -->
+        <!-- STATUS MESSAGE BANNER              -->
+        <!-- ═══════════════════════════════════ -->
+        <Border Grid.Row="2" CornerRadius="10" Padding="14,10" Margin="0,0,0,14" BorderThickness="1" Background="{StaticResource StudioAccentSoftBrush}" BorderBrush="{StaticResource StudioBorderBrush}">
+            <StackPanel Orientation="Horizontal">
+                <Border Width="6" Height="6" CornerRadius="3" Margin="0,0,10,0" VerticalAlignment="Center" Background="{StaticResource PrimaryGradient}"/>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource TextAccent}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ═══════════════════════════════════ -->
+        <!-- PUBLIC FILES GRID BROWSER          -->
+        <!-- ═══════════════════════════════════ -->
+        <Border Grid.Row="3" CornerRadius="14" Padding="20" BorderThickness="1" Background="{StaticResource StudioPanelBrush}" BorderBrush="{StaticResource StudioBorderBrush}">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,16">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="36" Height="36" CornerRadius="18" Background="{StaticResource StudioWorkspaceBrush}" BorderBrush="{StaticResource StudioBorderBrush}" BorderThickness="1" Margin="0,0,12,0">
+                            <TextBlock Text="📁" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="{Binding SelectedPeer.DisplayName, StringFormat='Shared Public Files ({0})', FallbackValue='Shared Public Files'}" FontSize="17" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                    </StackPanel>
+                    
+                    <Border CornerRadius="6" Padding="10,5" HorizontalAlignment="Right" VerticalAlignment="Center" Background="{StaticResource SuccessSubtle}" BorderBrush="{StaticResource SuccessColor}" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔒 " FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Text="Read-Only Shared on LAN" FontSize="12" Foreground="{StaticResource SuccessColor}" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding PublicFiles}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="fileCard" Margin="0,3" Padding="16,12" CornerRadius="10" BorderThickness="1" BorderBrush="{StaticResource StudioBorderBrush}" Background="{StaticResource StudioElevatedBrush}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto" MinWidth="180"/>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- File Extension Icon -->
+                                        <TextBlock Text="{Binding FileIcon}" FontSize="24" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                                        <!-- File Name -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                            <TextBlock Text="{Binding FileName}" Foreground="{StaticResource TextPrimary}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+
+                                        <!-- Relative Path Pill -->
+                                        <Border Grid.Column="2" Background="{StaticResource StudioWorkspaceBrush}" BorderBrush="{StaticResource StudioBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,16,0">
+                                            <TextBlock Text="{Binding RelativePath, StringFormat='/{0}'}" Foreground="{StaticResource TextSecondary}" FontSize="12" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+                                        </Border>
+
+                                        <!-- Formatted Size -->
+                                        <TextBlock Grid.Column="3" Text="{Binding FormattedSize}" Foreground="{StaticResource TextAccent}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,16,0"/>
+
+                                        <!-- Download Button -->
+                                        <Button Grid.Column="4" Content="⬇  Download" Command="{Binding DataContext.DownloadFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Style="{StaticResource ModernPrimaryButton}" FontSize="12" Padding="14,7"/>
+                                    </Grid>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <Trigger SourceName="fileCard" Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="fileCard" Property="BorderBrush" Value="{StaticResource StudioAccentBrush}"/>
+                                        <Setter TargetName="fileCard" Property="Background" Value="{StaticResource StudioBorderBrush}"/>
+                                        <Setter TargetName="fileCard" Property="Effect">
+                                            <Setter.Value>
+                                                <DropShadowEffect BlurRadius="12" Color="#7C5CFC" Direction="0" ShadowDepth="0" Opacity="0.18"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

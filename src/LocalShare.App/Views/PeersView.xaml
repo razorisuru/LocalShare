@@ -1,0 +1,775 @@
+<UserControl x:Class="LocalShare.App.Views.PeersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AllowDrop="True"
+             Drop="UserControl_Drop"
+             DragOver="UserControl_DragOver"
+             PreviewKeyDown="UserControl_PreviewKeyDown">
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="V" Modifiers="Control" Command="{Binding PasteFromClipboardCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid Margin="28,24,28,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- TOP TITLE BAR                          -->
+        <!-- ═══════════════════════════════════════ -->
+        <Grid Margin="0,0,0,14">
+            <StackPanel Orientation="Horizontal">
+                <Border Width="34"
+                        Height="34"
+                        CornerRadius="10"
+                        VerticalAlignment="Center"
+                        Margin="0,0,12,0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#7C5CFC" Offset="0"/>
+                            <GradientStop Color="#8B70FF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12"
+                                          Color="#7C5CFC"
+                                          Direction="0"
+                                          ShadowDepth="0"
+                                          Opacity="0.3"/>
+                    </Border.Effect>
+                    <TextBlock Text="🌐"
+                               FontSize="16"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="LAN Peer Discovery &amp; File Transfer"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource TitleGradient}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- ACTION BAR: Scan LAN & Direct IP       -->
+        <!-- ═══════════════════════════════════════ -->
+        <Border Grid.Row="1"
+                CornerRadius="14"
+                Padding="16,12"
+                Margin="0,0,0,14"
+                BorderThickness="1"
+                Background="{StaticResource StudioPanelBrush}"
+                BorderBrush="{StaticResource StudioBorderBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Content="🔍  Scan LAN Network"
+                        Command="{Binding ScanNetworkCommand}"
+                        Style="{StaticResource ModernPrimaryButton}"/>
+
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal">
+                    <TextBlock Text="Direct IP:"
+                               Foreground="{StaticResource TextSecondary}"
+                               VerticalAlignment="Center"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Margin="0,0,8,0"/>
+                    <TextBox Text="{Binding ManualIpInput, UpdateSourceTrigger=PropertyChanged}"
+                             Width="160"
+                             Background="{StaticResource StudioWorkspaceBrush}"
+                             Foreground="White"
+                             BorderBrush="{StaticResource StudioBorderBrush}"
+                             BorderThickness="1"
+                             Padding="12,8"
+                             VerticalContentAlignment="Center"
+                             FontSize="13"
+                             CaretBrush="{StaticResource TextAccent}"
+                             SelectionBrush="{StaticResource AccentGlow}"/>
+                    <Button Content="Connect"
+                            Command="{Binding ConnectDirectIpCommand}"
+                            Style="{StaticResource GhostButton}"
+                            Margin="8,0,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- STATUS MESSAGE BANNER                  -->
+        <!-- ═══════════════════════════════════════ -->
+        <Border Grid.Row="2"
+                CornerRadius="10"
+                Padding="14,10"
+                Margin="0,0,0,14"
+                BorderThickness="1"
+                Background="{StaticResource StudioAccentSoftBrush}"
+                BorderBrush="{StaticResource StudioBorderBrush}">
+            <StackPanel Orientation="Horizontal">
+                <Border Width="6"
+                        Height="6"
+                        CornerRadius="3"
+                        Margin="0,0,10,0"
+                        VerticalAlignment="Center">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#7C5CFC" Offset="0"/>
+                            <GradientStop Color="#8B70FF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{StaticResource TextAccent}"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- MAIN PEER GRID & STAGED FILES SPLIT AREA       -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <Grid Grid.Row="3"
+              Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="380"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ─── Peer Cards List ─── -->
+            <ScrollViewer Grid.Column="0"
+                          Margin="0,0,14,0"
+                          VerticalScrollBarVisibility="Auto">
+                <DockPanel>
+                    <!-- Multi-Select Toolbar -->
+                    <Grid DockPanel.Dock="Top"
+                          Margin="2,0,0,14">
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="1. Select Target Peers"
+                                       Foreground="{StaticResource TextSecondary}"
+                                       FontSize="12"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,16,0"/>
+                            <Button Content="☑  Select All"
+                                    Command="{Binding SelectAllPeersCommand}"
+                                    Style="{StaticResource GhostButton}"
+                                    FontSize="12"
+                                    Padding="10,6"
+                                    Margin="0,0,6,0"/>
+                            <Button Content="▪  Deselect All"
+                                    Command="{Binding DeselectAllPeersCommand}"
+                                    FontSize="12"
+                                    Padding="10,6"
+                                    Background="{StaticResource StudioElevatedBrush}"
+                                    Foreground="{StaticResource TextSecondary}"
+                                    BorderThickness="0"
+                                    Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="bd"
+                                                Background="{TemplateBinding Background}"
+                                                CornerRadius="8"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver"
+                                                     Value="True">
+                                                <Setter TargetName="bd"
+                                                        Property="Background"
+                                                        Value="{StaticResource StudioBorderBrush}"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding Peers}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <!-- ─── Peer Card (Studio Design) ─── -->
+                                <Border x:Name="peerCard"
+                                        Width="272"
+                                        Margin="6"
+                                        Padding="16,14"
+                                        CornerRadius="14"
+                                        BorderThickness="1"
+                                        BorderBrush="{StaticResource StudioBorderBrush}"
+                                        Background="{StaticResource StudioPanelBrush}"
+                                        AllowDrop="True"
+                                        Drop="PeerCard_Drop"
+                                        MouseLeftButtonDown="PeerCard_MouseLeftButtonDown"
+                                        Cursor="Hand">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="10"
+                                                          Color="#000000"
+                                                          Direction="270"
+                                                          ShadowDepth="2"
+                                                          Opacity="0.2"/>
+                                    </Border.Effect>
+                                    <StackPanel>
+                                        <!-- Top Row: Checkbox -->
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                      Style="{StaticResource HighVisibilityCheckBoxStyle}"
+                                                      VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <!-- Profile Section: Avatar & Name -->
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Width="44"
+                                                    Height="44"
+                                                    CornerRadius="22"
+                                                    VerticalAlignment="Center">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                        <GradientStop Color="#7C5CFC" Offset="0"/>
+                                                        <GradientStop Color="#8B70FF" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                                <Border.Effect>
+                                                    <DropShadowEffect BlurRadius="8"
+                                                                      Color="#7C5CFC"
+                                                                      Direction="0"
+                                                                      ShadowDepth="0"
+                                                                      Opacity="0.25"/>
+                                                </Border.Effect>
+                                                <TextBlock Text="{Binding DisplayName[0]}"
+                                                           FontSize="18"
+                                                           FontWeight="Bold"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1"
+                                                        VerticalAlignment="Center"
+                                                        Margin="12,0,0,0">
+                                                <TextBlock Text="{Binding DisplayName}"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           Foreground="{StaticResource TextPrimary}"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <Border Background="{StaticResource StudioWorkspaceBrush}"
+                                                        BorderBrush="{StaticResource StudioBorderBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="5"
+                                                        Padding="7,3"
+                                                        HorizontalAlignment="Left"
+                                                        Margin="0,4,0,0">
+                                                    <TextBlock Text="{Binding IpAddress, StringFormat='IP: {0}'}"
+                                                               FontSize="10.5"
+                                                               Foreground="{StaticResource TextAccent}"
+                                                               FontWeight="SemiBold"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Public Space Button -->
+                                        <Button Command="{Binding DataContext.OpenPublicSpaceForPeerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Visibility="{Binding HasPublicSpace, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                HorizontalAlignment="Stretch"
+                                                Margin="0,0,0,12"
+                                                Cursor="Hand"
+                                                Background="Transparent"
+                                                BorderThickness="0">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="pubBorder"
+                                                            CornerRadius="10"
+                                                            Padding="10,7"
+                                                            BorderThickness="1"
+                                                            Background="{StaticResource StudioAccentSoftBrush}"
+                                                            BorderBrush="{StaticResource StudioBorderBrush}">
+                                                        <TextBlock Text="📁  Explore Public Space  →"
+                                                                   FontSize="12"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource TextAccent}"
+                                                                   HorizontalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver"
+                                                                 Value="True">
+                                                            <Setter TargetName="pubBorder"
+                                                                    Property="Background"
+                                                                    Value="{StaticResource StudioElevatedBrush}"/>
+                                                            <Setter TargetName="pubBorder"
+                                                                    Property="BorderBrush"
+                                                                    Value="{StaticResource StudioAccentBrush}"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+
+                                        <!-- Action Buttons: Target & Chat -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button Content="🎯 Target"
+                                                    Command="{Binding DataContext.TogglePeerSelectionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource ModernPrimaryButton}"
+                                                    Margin="0,0,4,0"
+                                                    FontSize="12"
+                                                    Padding="0,8"/>
+                                            <Button Grid.Column="1"
+                                                    Content="💬 Chat"
+                                                    Command="{Binding DataContext.StartChatWithPeerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource ModernSuccessButton}"
+                                                    Margin="4,0,0,0"
+                                                    FontSize="12"
+                                                    Padding="0,8"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Hover triggers for the peer card -->
+                                <DataTemplate.Triggers>
+                                    <Trigger SourceName="peerCard"
+                                             Property="IsMouseOver"
+                                             Value="True">
+                                        <Setter TargetName="peerCard"
+                                                Property="BorderBrush"
+                                                Value="{StaticResource StudioAccentBrush}"/>
+                                        <Setter TargetName="peerCard"
+                                                Property="Effect">
+                                            <Setter.Value>
+                                                <DropShadowEffect BlurRadius="20"
+                                                                  Color="#7C5CFC"
+                                                                  Direction="0"
+                                                                  ShadowDepth="0"
+                                                                  Opacity="0.18"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter TargetName="peerCard"
+                                                Property="Background"
+                                                Value="{StaticResource StudioElevatedBrush}"/>
+                                    </Trigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </ScrollViewer>
+
+            <!-- ═══════════════════════════════════════ -->
+            <!-- STAGED FILES QUEUE & SEND ZONE         -->
+            <!-- ═══════════════════════════════════════ -->
+            <Border Grid.Column="1"
+                    CornerRadius="14"
+                    Padding="16"
+                    BorderThickness="1"
+                    Background="{StaticResource StudioPanelBrush}"
+                    BorderBrush="{StaticResource StudioBorderBrush}">
+                <DockPanel>
+                    <!-- Header -->
+                    <StackPanel DockPanel.Dock="Top"
+                                Margin="0,0,0,4">
+                        <TextBlock FontSize="16"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,4"
+                                   Foreground="{StaticResource TitleGradient}">
+                            <Run Text="📥  2. Files Ready to Send"/>
+                        </TextBlock>
+                        <TextBlock Text="Select target peer(s) on the left, then hit Send"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextSecondary}"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,12"/>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <Grid DockPanel.Dock="Top"
+                          Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="➕  Add Files"
+                                Command="{Binding AddStagedFilesCommand}"
+                                Style="{StaticResource GhostButton}"
+                                FontSize="12"
+                                Padding="10,7"/>
+                        <Button Grid.Column="1"
+                                Content="📋  Paste Image"
+                                Command="{Binding PasteFromClipboardCommand}"
+                                Style="{StaticResource ModernPrimaryButton}"
+                                FontSize="12"
+                                Padding="10,7"
+                                Margin="6,0,0,0"
+                                ToolTip="Paste image or files from Windows Clipboard (Ctrl+V)"/>
+                        <Button Grid.Column="2"
+                                Content="Clear All"
+                                Command="{Binding ClearStagedFilesCommand}"
+                                Style="{StaticResource ModernDangerButton}"
+                                FontSize="12"
+                                Padding="10,7"
+                                Margin="6,0,0,0"/>
+                    </Grid>
+
+                    <!-- SEND NOW Button -->
+                    <Button DockPanel.Dock="Bottom"
+                            Command="{Binding SendStagedFilesNowCommand}"
+                            Foreground="White"
+                            FontSize="15"
+                            FontWeight="Bold"
+                            Padding="0,16"
+                            Margin="0,14,0,6"
+                            Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="sendBorder"
+                                        CornerRadius="12"
+                                        Padding="0,16"
+                                        BorderThickness="1"
+                                        BorderBrush="Transparent"
+                                        Background="{StaticResource SendNowGradient}">
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Center">
+                                        <TextBlock Text="SEND FILES"
+                                                   FontSize="15"
+                                                   FontWeight="Bold"
+                                                   Foreground="White"
+                                                   Margin="8,0,0,0"/>
+                                        <TextBlock Text="{Binding StagedFiles.Count, StringFormat='({0} files)'}"
+                                                   FontSize="15"
+                                                   FontWeight="Bold"
+                                                   Foreground="White"
+                                                   Opacity="0.8"
+                                                   Margin="4,0,8,0"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver"
+                                             Value="True">
+                                        <Setter TargetName="sendBorder"
+                                                Property="BorderBrush"
+                                                Value="{StaticResource StudioAccentHoverBrush}"/>
+                                        <Setter TargetName="sendBorder"
+                                                Property="Effect">
+                                            <Setter.Value>
+                                                <DropShadowEffect BlurRadius="24"
+                                                                  Color="#7C5CFC"
+                                                                  Direction="0"
+                                                                  ShadowDepth="0"
+                                                                  Opacity="0.45"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed"
+                                             Value="True">
+                                        <Setter TargetName="sendBorder"
+                                                Property="Opacity"
+                                                Value="0.85"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled"
+                                             Value="False">
+                                        <Setter TargetName="sendBorder"
+                                                Property="Opacity"
+                                                Value="0.35"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!-- Staged File Items List -->
+                    <Border Background="{StaticResource StudioWorkspaceBrush}"
+                            BorderBrush="{StaticResource StudioBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="6">
+                        <ListBox ItemsSource="{Binding StagedFiles}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <ContentPresenter/>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="fileItem"
+                                            Margin="2,3"
+                                            Padding="10,8"
+                                            CornerRadius="10"
+                                            BorderThickness="1"
+                                            BorderBrush="{StaticResource StudioBorderBrush}"
+                                            Background="{StaticResource StudioElevatedBrush}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="{Binding FileIcon}"
+                                                       FontSize="18"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,10,0"/>
+
+                                            <StackPanel Grid.Column="1"
+                                                        VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding FileName}"
+                                                           Foreground="{StaticResource TextPrimary}"
+                                                           FontSize="12.5"
+                                                           FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding FormattedSize}"
+                                                           Foreground="{StaticResource TextSecondary}"
+                                                           FontSize="10.5"/>
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2"
+                                                    Content="✕"
+                                                    Command="{Binding DataContext.RemoveStagedFileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource DangerColor}"
+                                                    FontSize="12"
+                                                    FontWeight="Bold"
+                                                    BorderThickness="0"
+                                                    Margin="8,0,0,0"
+                                                    Cursor="Hand"
+                                                    Padding="6,2">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="closeBd"
+                                                                Background="Transparent"
+                                                                CornerRadius="6"
+                                                                Padding="6,2">
+                                                            <ContentPresenter HorizontalAlignment="Center"
+                                                                              VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver"
+                                                                     Value="True">
+                                                                <Setter TargetName="closeBd"
+                                                                        Property="Background"
+                                                                        Value="{StaticResource DangerSubtle}"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <Trigger SourceName="fileItem"
+                                                 Property="IsMouseOver"
+                                                 Value="True">
+                                            <Setter TargetName="fileItem"
+                                                    Property="BorderBrush"
+                                                    Value="{StaticResource StudioAccentBrush}"/>
+                                            <Setter TargetName="fileItem"
+                                                    Property="Background"
+                                                    Value="{StaticResource StudioBorderBrush}"/>
+                                        </Trigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- LIVE ACTIVE TRANSFERS BAR WITH PROGRESS & CANCEL       -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <Border Grid.Row="4"
+                CornerRadius="14"
+                Padding="16"
+                BorderThickness="1"
+                Background="{StaticResource StudioPanelBrush}"
+                BorderBrush="{StaticResource StudioBorderBrush}">
+            <DockPanel>
+                <!-- Collapsible Header Bar -->
+                <Grid DockPanel.Dock="Top"
+                      Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock FontSize="16"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,0"
+                                   Foreground="{StaticResource TitleGradient}">
+                            <Run Text="⚡ Live P2P Transfers"/>
+                        </TextBlock>
+                        <TextBlock Text="Real-time chunk streaming"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextSecondary}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Command="{Binding ClearActiveTransfersHistoryCommand}"
+                                Style="{StaticResource ModernDangerButton}"
+                                FontSize="11"
+                                Padding="10,5"
+                                Margin="0,0,8,0"
+                                Content="🗑️ Clear Records"/>
+                        <Button Command="{Binding ToggleLiveTransfersCommand}"
+                                Style="{StaticResource GhostButton}"
+                                FontSize="12"
+                                Padding="12,6">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="👁  Toggle View"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              MaxHeight="200"
+                              Visibility="{Binding ShowLiveTransfers, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ItemsControl ItemsSource="{Binding ActiveTransfers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="transferItem"
+                                        Margin="0,3"
+                                        Padding="14,10"
+                                        CornerRadius="10"
+                                        BorderThickness="1"
+                                        BorderBrush="{StaticResource StudioBorderBrush}"
+                                        Background="{StaticResource StudioWorkspaceBrush}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="210"/>
+                                            <ColumnDefinition Width="130"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="160"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- File Name & Size -->
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding FileName}"
+                                                       Foreground="{StaticResource TextPrimary}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="13"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding FormattedSize, StringFormat='Size: {0}'}"
+                                                       Foreground="{StaticResource TextSecondary}"
+                                                       FontSize="10.5"/>
+                                        </StackPanel>
+
+                                        <!-- Target Peer Pill -->
+                                        <Border Grid.Column="1"
+                                                Background="{StaticResource StudioElevatedBrush}"
+                                                BorderBrush="{StaticResource StudioBorderBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="7"
+                                                Padding="8,4"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding PeerDisplayName, StringFormat='→ {0}'}"
+                                                       Foreground="{StaticResource TextAccent}"
+                                                       FontSize="10.5"
+                                                       FontWeight="SemiBold"/>
+                                        </Border>
+
+                                        <!-- Progress Bar -->
+                                        <ProgressBar Grid.Column="2"
+                                                     Value="{Binding ProgressPercentage, Mode=OneWay}"
+                                                     Maximum="100"
+                                                     Height="6"
+                                                     Background="{StaticResource StudioElevatedBrush}"
+                                                     VerticalAlignment="Center"
+                                                     Margin="14,0"
+                                                     BorderThickness="0"
+                                                     Foreground="{StaticResource PrimaryGradient}"/>
+
+                                        <!-- Progress Details -->
+                                        <TextBlock Grid.Column="3"
+                                                   Text="{Binding FormattedProgressDetails, Mode=OneWay}"
+                                                   Foreground="{StaticResource TextSecondary}"
+                                                   FontSize="10.5"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"/>
+
+                                        <!-- Status Badge & Cancel Button -->
+                                        <StackPanel Grid.Column="4"
+                                                    Orientation="Horizontal"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding StatusText, Mode=OneWay}"
+                                                       Foreground="{Binding StatusColor, Mode=OneWay}"
+                                                       FontSize="12"
+                                                       FontWeight="Bold"
+                                                       VerticalAlignment="Center"/>
+                                            <Button Content="✕ Cancel"
+                                                    Command="{Binding DataContext.CancelTransferCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Visibility="{Binding CanCancel, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                    Style="{StaticResource ModernDangerButton}"
+                                                    FontSize="11"
+                                                    Padding="8,4"
+                                                    Margin="8,0,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <Trigger SourceName="transferItem"
+                                             Property="IsMouseOver"
+                                             Value="True">
+                                        <Setter TargetName="transferItem"
+                                                Property="BorderBrush"
+                                                Value="{StaticResource StudioAccentBrush}"/>
+                                        <Setter TargetName="transferItem"
+                                                Property="Background"
+                                                Value="{StaticResource StudioElevatedBrush}"/>
+                                    </Trigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

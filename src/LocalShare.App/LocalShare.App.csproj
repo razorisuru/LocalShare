@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\LocalShare.Core\LocalShare.Core.csproj" />
+    <ProjectReference Include="..\LocalShare.Networking\LocalShare.Networking.csproj" />
+    <ProjectReference Include="..\LocalShare.Data\LocalShare.Data.csproj" />
+    <ProjectReference Include="..\LocalShare.Common\LocalShare.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\logo-new.ico" />
+    <None Update="Assets\fahhh.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\logo-new.ico</ApplicationIcon>
+    <AssemblyTitle>LocalShare - P2P LAN Sharing &amp; Messenger</AssemblyTitle>
+    <AssemblyProduct>LocalShare</AssemblyProduct>
+    <AssemblyCompany>RaZoR Isuru</AssemblyCompany>
+    <Authors>RaZoR Isuru</Authors>
+    <Description>Fast P2P LAN File Sharing and Real-time Instant Messenger</Description>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+</Project>

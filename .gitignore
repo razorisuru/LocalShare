@@ -1,0 +1,83 @@
+## ==========================================
+## LocalShare - Comprehensive .gitignore
+## ==========================================
+
+# Build & Compilation Outputs
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Pp]ublish/
+[Dd]ist/
+[Ll]og/
+[Ll]ogs/
+*.dll
+*.so
+*.dylib
+*.pdb
+*.cache
+
+# Build Release Installer Artifacts
+
+# Visual Studio & IDE files
+.vs/
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+*.workspace
+*.pidb
+*.vsp
+*.vspx
+
+# Test Results & Code Coverage
+[Tt]est[Rr]esults/
+[Cc]overage/
+*.trx
+*.coverage
+*.coveragexml
+
+# SQLite & Local Application Databases
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+localshare.db
+
+# User Scratch & Temp Files
+scratch/
+*.tmp
+*.temp
+*.log
+*.bak
+*.swp
+*~
+
+.env
+
+# Operating System Files
+[Tt]humbs.db
+[Dd]esktop.ini
+.DS_Store
+$RECYCLE.BIN/
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/packages/
+!**/packages/build/
+
+src/LocalShare.App/bin
+src/LocalShare.Common/bin
+src/LocalShare.Core/bin
+src/LocalShare.Data/bin
+src/LocalShare.Networking/bin
+tests/LocalShare.Core.Tests/bin
+tests/LocalShare.Data.Tests/bin
+tests/LocalShare.Networking.Tests/bin
+BUILD_AND_UPDATE_GUIDE.md
+MD

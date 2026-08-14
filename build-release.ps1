@@ -10,6 +10,7 @@ $ErrorActionPreference = "Stop"
 
 # Automatically parse .env file if GITHUB_TOKEN is not passed directly
 if ([string]::IsNullOrWhiteSpace($GitHubToken)) {
+    Write-Host "====================ENV======================================"
     $EnvFile = Join-Path (Get-Location) ".env"
     if (Test-Path $EnvFile) {
         Get-Content $EnvFile | ForEach-Object {

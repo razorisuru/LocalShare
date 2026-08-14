@@ -1,8 +1,8 @@
 ﻿{
-    "version":  "0.0.4",
+    "version":  "0.1.5",
     "releaseDate":  "2026-08-15",
-    "downloadUrl":  "https://github.com/razorisuru/LocalShare/releases/download/v0.0.4/LocalShare_Setup_v0.0.4.exe",
-    "changelog":  "Release version v0.0.4 with Obsidian Glass UI, dark high-visibility controls, Public Space browser, multi-peer streaming, and dynamic version management.",
+    "downloadUrl":  "https://github.com/razorisuru/LocalShare/releases/download/v0.1.5/LocalShare_Setup_v0.1.5.exe",
+    "changelog":  "Release version v0.1.5 with Obsidian Glass UI, dark high-visibility controls, Public Space browser, multi-peer streaming, and dynamic version management.",
     "sha256":  "",
     "isMandatory":  false
 }
